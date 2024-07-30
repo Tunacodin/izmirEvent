@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,11 +8,15 @@ import {
   TouchableOpacity,
   SafeAreaView,
   ScrollView,
+  Alert,
 } from "react-native";
+import * as Calendar from "expo-calendar";
 import { FontAwesome } from "@expo/vector-icons"; // İkonlar için
 
 const EventDetail = ({ route }) => {
   const { event } = route.params;
+  const [hasCalendarPermission, setHasCalendarPermission] = useState(false);
+  const [defaultCalendarId, setDefaultCalendarId] = useState(null);
 
   const baseURL = "https://kultursanat.izmir.bel.tr/Etkinlikler";
 
@@ -83,6 +87,8 @@ const EventDetail = ({ route }) => {
     }
   };
 
+  
+
   const eventStartDate = new Date(event.EtkinlikBaslamaTarihi);
   const eventEndDate = new Date(event.EtkinlikBitisTarihi);
 
@@ -121,20 +127,8 @@ const EventDetail = ({ route }) => {
             <Text style={styles.detailText}>{event.EtkinlikMerkezi}</Text>
           </View>
           <View style={styles.card}>
-
-
             <View style={styles.dateContainer}>
-
-              <View
-                style={{
-                  display: "flex",
-                  justifyContent: "space-evenly",
-                  flexDirection: "row",
-                  alignItems: "center",
-
-                }}
-              >
-              
+              <View style={styles.dateAndTimeContainer}>
                 <FontAwesome
                   name="calendar"
                   size={24}
@@ -161,7 +155,6 @@ const EventDetail = ({ route }) => {
                   </>
                 )}
               </View>
-
               <View style={styles.timeContainer}>
                 <Text style={styles.timeText}>
                   {formatTime(event.EtkinlikBaslamaTarihi)}
@@ -170,7 +163,6 @@ const EventDetail = ({ route }) => {
                   {formatTime(event.EtkinlikBitisTarihi)}
                 </Text>
               </View>
-
             </View>
           </View>
           <TouchableOpacity style={styles.button} onPress={handleOpenEventPage}>
@@ -181,6 +173,9 @@ const EventDetail = ({ route }) => {
               <Text style={styles.buttonText}>Bilet Satın Al</Text>
             </TouchableOpacity>
           )}
+          <TouchableOpacity style={styles.button} onPress={handleAddToCalendar}>
+            <Text style={styles.buttonText}>Takvime Ekle</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -212,59 +207,48 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 16,
     marginBottom: 16,
-    flexDirection: "row",
-    alignItems: "flex-start",
-    flexWrap: "wrap",
   },
   icon: {
-    marginRight: 12,
+    marginBottom: 8,
   },
   title: {
-    fontSize: 18,
-    fontWeight: "bold",
+    fontSize: 24,
     color: "#FFFFFF",
-    flexShrink: 1,
+    fontWeight: "bold",
   },
   description: {
     fontSize: 16,
-    color: "#CCCCCC",
-    flexShrink: 1,
+    color: "#FFFFFF",
   },
   detailText: {
-    fontSize: 14,
-    color: "#CCCCCC",
+    fontSize: 16,
+    color: "#FFFFFF",
   },
   dateContainer: {
     flexDirection: "row",
- justifyContent: "space-between",
-    width: "100%",
-    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  dateAndTimeContainer: {
+    flex: 1,
   },
   timeContainer: {
-    backgroundColor: "#2D2D2D", // Saat bilgileri için arka plan rengi
-    borderRadius: 8,
- justifyContent:"space-between",
-    alignItems: "center",
+    flex: 1,
+    alignItems: "flex-end",
   },
   timeText: {
-    fontSize: 14,
-    color: "#FFaaFF",
-    width: 50,
-    textAlign: "center",
-    padding: 2,
+    fontSize: 16,
+    color: "#FFFFFF",
   },
   button: {
-    backgroundColor: "#007BFF",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
+    backgroundColor: "#6200EE",
+    padding: 16,
+    borderRadius: 10,
+    marginBottom: 16,
     alignItems: "center",
-    marginTop: 16,
   },
   buttonText: {
     color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "bold",
+    fontSize: 18,
   },
 });
 

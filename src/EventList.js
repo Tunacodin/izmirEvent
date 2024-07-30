@@ -27,6 +27,7 @@ const EventList = ({ navigation }) => {
   const [selectedPrice, setSelectedPrice] = useState(""); // Yeni eklenen durum
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false); // Yenileme durumu
 
   useEffect(() => {
     if (eventStatus === "idle") {
@@ -103,6 +104,17 @@ const EventList = ({ navigation }) => {
     setIsModalVisible(false);
   };
 
+  const refreshEvents = async () => {
+    setIsRefreshing(true);
+    try {
+      await dispatch(fetchEvents());
+    } catch (error) {
+      console.warn("Error refreshing events:", error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   const renderItem = ({ item }) => (
     <TouchableOpacity
       onPress={() => navigation.navigate("EventDetail", { event: item })}
@@ -115,7 +127,7 @@ const EventList = ({ navigation }) => {
         <Text style={styles.labelType}>{item.Tur}</Text>
       </View>
       <Image
-        source={{ uri: item.Resim }}
+        source={{ uri: item.KucukAfis }}
         style={styles.itemImage}
         onError={(e) =>
           console.warn("Image loading error:", e.nativeEvent.error)
@@ -139,7 +151,12 @@ const EventList = ({ navigation }) => {
   } else if (eventStatus === "failed") {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>Error: {error}</Text>
+        <Text style={styles.errorText}>
+          Bağlantı hatası. Lütfen tekrar deneyin.
+        </Text>
+        <TouchableOpacity onPress={refreshEvents} style={styles.retryButton}>
+          <Text style={styles.retryButtonText}>Yeniden Dene</Text>
+        </TouchableOpacity>
       </View>
     );
   } else {
@@ -165,6 +182,8 @@ const EventList = ({ navigation }) => {
           columnWrapperStyle={styles.columnWrapper}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.5}
+          onRefresh={refreshEvents} // Yenileme fonksiyonu
+          refreshing={isRefreshing} // Yenileme durumu
           ListFooterComponent={() =>
             isLoadingMore ? (
               <ActivityIndicator size="large" color="#0000ff" />
@@ -241,8 +260,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: "#f4f4f4",
+    backgroundColor: "#121212", // Siyah arka plan
     paddingTop: Platform.OS === "ios" ? 60 : 40,
+  
   },
   searchContainer: {
     flexDirection: "row",
@@ -255,47 +275,23 @@ const styles = StyleSheet.create({
     elevation: 3,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    width: "96%",
+    alignSelf: "center",
   },
   searchInput: {
-    height: 40,
     flex: 1,
-    paddingHorizontal: 10,
+    padding: 8,
   },
   filterButton: {
     padding: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#fff",
   },
-  filterButtonText: {
-    fontSize: 16,
-    color: "#000",
+  listContent: {
+    flexGrow: 1,
   },
-  filterContainer: {
-    marginBottom: 16,
-  },
-  filterText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 8,
-  },
-  buttonContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+  columnWrapper: {
     justifyContent: "space-between",
-  },
-  filterButton: {
-    backgroundColor: "#ddd",
-    padding: 10,
-    borderRadius: 5,
-    marginBottom: 10,
-    alignItems: "center",
-  },
-  filterButtonText: {
-    fontSize: 16,
-    color: "#000",
   },
   itemContainer: {
     flex: 1,
@@ -303,46 +299,44 @@ const styles = StyleSheet.create({
     margin: 8,
     borderRadius: 8,
     overflow: "hidden",
-    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   labelContainer: {
+    padding: 8,
     flexDirection: "row",
     justifyContent: "space-between",
-    padding: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
   },
   labelFree: {
-    backgroundColor: "#4CAF50",
-    color: "#fff",
-    padding: 4,
-    borderRadius: 5,
-    fontSize: 12,
+    color: "green",
   },
   labelPaid: {
-    backgroundColor: "#F44336",
-    color: "#fff",
+    color: "red",
   },
   labelType: {
-    backgroundColor: "#E0E0E0",
-    padding: 4,
-    borderRadius: 5,
-    fontSize: 12,
+    color: "gray",
+    //tür etiketi sinema ise background mavi olacak
+    
+    paddingHorizontal: 8,
+    borderRadius: 4,
   },
   itemImage: {
     width: "100%",
-    height: 120,
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
+    height: 100,
   },
   itemTextContainer: {
     padding: 8,
   },
   itemTitle: {
-    fontSize: 16,
     fontWeight: "bold",
   },
   itemDescription: {
-    fontSize: 14,
-    color: "#757575",
+    color: "gray",
   },
   modalContainer: {
     flex: 1,
@@ -351,56 +345,61 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContent: {
-    width: "90%",
-    maxWidth: 400,
     backgroundColor: "#fff",
-    borderRadius: 8,
     padding: 16,
-    elevation: 5,
+    borderRadius: 8,
+    width: "80%",
+    alignItems: "center",
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 12,
+    marginBottom: 16,
   },
   filterOptionContainer: {
     marginBottom: 16,
+    width: "100%",
   },
   filterOptionTitle: {
-    fontSize: 16,
     fontWeight: "bold",
     marginBottom: 8,
   },
   filterOptionButton: {
-    padding: 10,
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    marginVertical: 4,
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: "#ddd",
+    marginBottom: 8,
     alignItems: "center",
   },
   filterOptionButtonSelected: {
-    backgroundColor: "#4CAF50",
-    borderColor: "#4CAF50",
+    backgroundColor: "#2196F3",
   },
   filterOptionButtonText: {
-    fontSize: 16,
     color: "#000",
   },
   modalCloseButton: {
-    padding: 10,
-    borderRadius: 5,
+    marginTop: 16,
+    padding: 12,
+    borderRadius: 8,
     backgroundColor: "#2196F3",
-    alignItems: "center",
   },
   modalCloseButtonText: {
     color: "#fff",
-    fontSize: 16,
     fontWeight: "bold",
   },
   errorText: {
-    color: "#F44336",
+    color: "red",
     fontSize: 16,
+    marginBottom: 16,
+  },
+  retryButton: {
+    padding: 10,
+    borderRadius: 8,
+    backgroundColor: "#2196F3",
+    alignItems: "center",
+  },
+  retryButtonText: {
+    color: "#fff",
     fontWeight: "bold",
   },
 });
