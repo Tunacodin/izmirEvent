@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchEvents } from "./eventsSlice";
 import {
@@ -15,6 +15,38 @@ import {
   Pressable,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+
+// Memoized EventCard component
+const EventCard = React.memo(({ item, onPress }) => (
+  <TouchableOpacity onPress={() => onPress(item)} style={styles.itemContainer}>
+    <View style={styles.labelContainer}>
+      <View
+        style={[
+          styles.labelFree,
+          { backgroundColor: item.UcretsizMi ? "#4CAF50" : "#f44336" },
+        ]}
+      >
+        <Text style={styles.labelText}>
+          {item.UcretsizMi ? "Ücretsiz" : "Ücretli"}
+        </Text>
+      </View>
+      <View style={[styles.labelType]}>
+        <Text style={styles.labelText}>{item.Tur}</Text>
+      </View>
+    </View>
+    <Image
+      source={{ uri: item.KucukAfis }}
+      style={styles.itemImage}
+      onError={(e) => console.warn("Image loading error:", e.nativeEvent.error)}
+    />
+    <View style={styles.itemTextContainer}>
+      <Text style={styles.itemTitle}>{item.Adi}</Text>
+      <Text style={styles.itemDescription} numberOfLines={2}>
+        {item.KisaAciklama}
+      </Text>
+    </View>
+  </TouchableOpacity>
+));
 
 const EventList = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -34,19 +66,22 @@ const EventList = ({ navigation }) => {
   }, [eventStatus, dispatch]);
 
   useEffect(() => {
-    if (events.length) {
-      filterEvents();
-    }
-  }, [events, selectedTypes]);
+    filterEvents();
+  }, [events, selectedTypes, searchTerm]);
 
   const filterEvents = () => {
     let filtered = events;
 
     if (selectedTypes.length > 0) {
-      filtered = filtered.filter((event) => selectedTypes.includes(event.Tur));
+      filtered = filtered.filter((event) => {
+        const eventType = event.Tur ? event.Tur.trim().toLowerCase() : "";
+        const typeMatch = selectedTypes
+          .map((type) => type.trim().toLowerCase())
+          .includes(eventType);
+        return typeMatch;
+      });
     }
 
-    // Apply search filter
     if (searchTerm) {
       filtered = filtered.filter((item) =>
         item.Adi.toLowerCase().includes(searchTerm.toLowerCase())
@@ -69,32 +104,17 @@ const EventList = ({ navigation }) => {
     });
   };
 
-  const renderItem = ({ item }) => (
-    <TouchableOpacity
-      onPress={() => navigation.navigate("EventDetail", { event: item })}
-      style={styles.itemContainer}
-    >
-      <View style={styles.labelContainer}>
-        <Text style={styles.labelFree}>
-          {item.UcretsizMi ? "Ücretsiz" : "Ücretli"}
-        </Text>
-        <Text style={styles.labelType}>{item.Tur}</Text>
-      </View>
-      <Image
-        source={{ uri: item.KucukAfis }}
-        style={styles.itemImage}
-        onError={(e) =>
-          console.warn("Image loading error:", e.nativeEvent.error)
-        }
+  const renderItem = useCallback(
+    ({ item }) => (
+      <EventCard
+        item={item}
+        onPress={(event) => navigation.navigate("EventDetail", { event })}
       />
-      <View style={styles.itemTextContainer}>
-        <Text style={styles.itemTitle}>{item.Adi}</Text>
-        <Text style={styles.itemDescription} numberOfLines={2}>
-          {item.KisaAciklama}
-        </Text>
-      </View>
-    </TouchableOpacity>
+    ),
+    [navigation]
   );
+
+  const keyExtractor = useCallback((item) => item.Id.toString(), []);
 
   if (eventStatus === "loading") {
     return (
@@ -136,10 +156,16 @@ const EventList = ({ navigation }) => {
         <FlatList
           data={filteredEvents}
           renderItem={renderItem}
-          keyExtractor={(item) => item.Id.toString()}
+          keyExtractor={keyExtractor}
           contentContainerStyle={styles.listContent}
           numColumns={2}
           columnWrapperStyle={styles.columnWrapper}
+          getItemLayout={(data, index) => ({
+            length: 200,
+            offset: 200 * index,
+            index,
+          })}
+          initialNumToRender={10}
         />
         <Modal
           transparent={true}
@@ -150,7 +176,6 @@ const EventList = ({ navigation }) => {
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>Filtrele</Text>
 
-              {/* Type Filter */}
               <View style={styles.filterSection}>
                 <Text style={styles.filterSectionTitle}>
                   Türe Göre Filtrele
@@ -165,7 +190,15 @@ const EventList = ({ navigation }) => {
                       ]}
                       onPress={() => handleTypeSelect(type)}
                     >
-                      <Text>{type}</Text>
+                      <Text
+                        style={
+                          selectedTypes.includes(type)
+                            ? styles.selectedText
+                            : null
+                        }
+                      >
+                        {type}
+                      </Text>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -246,63 +279,54 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    
+    position: "relative",
   },
   labelContainer: {
     position: "absolute",
     top: 10,
+    left: 10,
     right: 10,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
-    padding: 10,
-    borderRadius: 5,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
   },
   labelFree: {
+    backgroundColor: "#4CAF50",
     color: "#fff",
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    borderRadius: 5,
     fontSize: 12,
   },
   labelType: {
+    backgroundColor: "#FF5722",
+    color: "#fff",
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    borderRadius: 5,
+    fontSize: 12,
+  },
+  labelText: {
     color: "#fff",
     fontSize: 12,
-    marginTop: 5,
   },
   itemImage: {
     width: "100%",
-    height: 130,
+    height: 150,
     borderRadius: 8,
-    marginBottom: 10,
-    resizeMode: "cover",
   },
   itemTextContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    padding: 10,
   },
   itemTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#eee",
-    marginBottom: 5,
-    textAlign: "center",
-    width: "90%",
-    marginBottom: 10,
+    color: "#fff",
   },
   itemDescription: {
     fontSize: 14,
-    color: "#bbb",
-    textAlign: "center",
-    width: "90%",
-    height: 60,
-  },
-  loadingText: {
-    fontSize: 18,
-    textAlign: "center",
-    marginTop: 20,
-  },
-  errorText: {
-    fontSize: 18,
-    textAlign: "center",
-    color: "red",
-    marginTop: 20,
+    color: "#fff",
   },
   modalContainer: {
     flex: 1,
@@ -311,19 +335,22 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContent: {
-    width: "80%",
+    width: "90%",
+    padding: 20,
     backgroundColor: "#fff",
     borderRadius: 10,
-    padding: 20,
-    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 15,
+    marginBottom: 10,
   },
   filterSection: {
-    width: "100%",
     marginBottom: 20,
   },
   filterSectionTitle: {
@@ -334,28 +361,31 @@ const styles = StyleSheet.create({
   filterOptions: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-between",
   },
   filterOption: {
-    paddingVertical: 10,
-    paddingHorizontal: 15,
+    padding: 10,
     borderRadius: 5,
-    backgroundColor: "#f1f1f1",
     margin: 5,
-    alignItems: "center",
+    backgroundColor: "#eee",
   },
   selectedOption: {
-    backgroundColor: "#007bff",
+    backgroundColor: "#4CAF50",
+  },
+  selectedText: {
     color: "#fff",
   },
   modalCloseButton: {
-    marginTop: 15,
     padding: 10,
-    backgroundColor: "#f1f1f1",
     borderRadius: 5,
+    backgroundColor: "#4CAF50",
+    alignItems: "center",
   },
   modalCloseText: {
-    color: "#007bff",
+    color: "#fff",
+    fontSize: 16,
+  },
+  errorText: {
+    color: "red",
   },
 });
 
