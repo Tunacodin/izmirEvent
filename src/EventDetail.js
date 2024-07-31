@@ -9,16 +9,24 @@ import {
   SafeAreaView,
   ScrollView,
   Alert,
+  Modal,
+  Button,
+  ActivityIndicator,
 } from "react-native";
 import * as Calendar from "expo-calendar";
-import { FontAwesome } from "@expo/vector-icons"; // İkonlar için
+import { FontAwesome } from "@expo/vector-icons";
 
 const EventDetail = ({ route }) => {
   const { event } = route.params;
   const [hasCalendarPermission, setHasCalendarPermission] = useState(false);
   const [defaultCalendarId, setDefaultCalendarId] = useState(null);
-
-  const baseURL = "https://kultursanat.izmir.bel.tr/Etkinlikler";
+  const [modalVisible, setModalVisible] = useState(false);
+  const [sessionDetails, setSessionDetails] = useState(null);
+  const [loading, setLoading] = useState(false);
+const [KoordinatX, setKoordinatX] = useState(null);
+  const [KoordinatY, setKoordinatY] = useState(null);
+  
+  const sessionDetailsURL = `https://openapi.izmir.bel.tr/api/ibb/kultursanat/etkinlikler/${event.Id}`; // Use provided API URL
 
   useEffect(() => {
     (async () => {
@@ -35,7 +43,29 @@ const EventDetail = ({ route }) => {
     })();
   }, []);
 
-  // Tarih formatlama
+  useEffect(() => {
+    if (modalVisible) {
+      fetchSessionDetails();
+    }
+  }, [modalVisible]);
+
+  const fetchSessionDetails = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(sessionDetailsURL);
+      const data = await response.json();
+   
+      setSessionDetails(data);
+      console.log(data);
+    } catch (error) {
+      Alert.alert("Error fetching session details.");
+      console.error("Error fetching session details:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+
   const formatDate = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
@@ -46,7 +76,6 @@ const EventDetail = ({ route }) => {
       .padStart(2, "0")} ${date.getFullYear()}`;
   };
 
-  // Saat formatlama
   const formatTime = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
@@ -56,7 +85,6 @@ const EventDetail = ({ route }) => {
       .padStart(2, "0")}`;
   };
 
-  // Tarih karşılaştırma
   const isSameDay = (startDate, endDate) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
@@ -67,18 +95,20 @@ const EventDetail = ({ route }) => {
     );
   };
 
-  // HTML etiketlerini temizleme
   const cleanText = (text) => {
     if (!text) return "";
     return text
-      .replace(/<\/?br>/g, "") // <br> etiketlerini kaldır
-      .replace(/[\r\n]+/g, " ") // Satır başlarını tek boşlukla değiştir
-      .replace(/&nbsp;/g, " "); // &nbsp; karakterlerini boşlukla değiştir
+      .replace(/<\/?[^>]+(>|$)/g, "") // HTML etiketlerini temizle
+      .replace(/&nbsp;/g, " ") // HTML boşluk karakterlerini temizle
+      .replace(/&[a-zA-Z0-9#]{2,5};/g, "") // HTML karakter referanslarını temizle
+      .replace(/[\r\n]+/g, " ") // Satır sonlarını temizle
+      .replace(/\s+/g, " ") // Fazla boşlukları tek bir boşlukla değiştir
+      .trim(); // Baş ve sondaki boşlukları temizle
   };
 
   const handleOpenEventPage = () => {
     const eventURL = event.EtkinlikUrl;
-    const url = `${baseURL}/${eventURL}`;
+    const url = `https://kultursanat.izmir.bel.tr/Etkinlikler/${eventURL}`;
 
     if (url.startsWith("http://") || url.startsWith("https://")) {
       Linking.openURL(url).catch((err) =>
@@ -92,7 +122,7 @@ const EventDetail = ({ route }) => {
   const handleBuyTicket = () => {
     if (event.BiletSatisLinki) {
       const url = event.BiletSatisLinki;
-      if (url && (url.startsWith("http://") || url.startsWith("https://"))) {
+      if (url.startsWith("http://") || url.startsWith("https://")) {
         Linking.openURL(url).catch((err) =>
           console.error("An error occurred while opening the ticket page", err)
         );
@@ -104,7 +134,7 @@ const EventDetail = ({ route }) => {
 
   const handleAddToCalendar = async () => {
     if (!hasCalendarPermission) {
-      Alert.alert("Takvim izni gerekli");
+      Alert.alert("Calendar permission is required.");
       return;
     }
 
@@ -121,103 +151,179 @@ const EventDetail = ({ route }) => {
         defaultCalendarId,
         eventDetails
       );
-      Alert.alert("Etkinlik takvime eklendi");
+      Alert.alert("Event added to calendar successfully.");
     } catch (error) {
-      Alert.alert("Etkinlik takvime eklenirken bir hata oluştu");
+      Alert.alert("An error occurred while adding the event to the calendar.");
       console.error("Error adding event to calendar:", error);
     }
   };
 
-  const eventStartDate = new Date(event.EtkinlikBaslamaTarihi);
-  const eventEndDate = new Date(event.EtkinlikBitisTarihi);
+const handleShowOnMap = () => {
+  const { KoordinatX, KoordinatY } = event.Id;
+  if (KoordinatX !== undefined && KoordinatY !== undefined) {
+    // Replace commas with dots
+    const formattedKoordinatX = KoordinatX.toString().replace(",", ".");
+    const formattedKoordinatY = KoordinatY.toString().replace(",", ".");
+
+    // Log the formatted coordinates
+    console.log(
+      "Formatted Coordinates:",
+      formattedKoordinatX,
+      formattedKoordinatY
+    );
+
+    // Construct the URL
+    const url = `https://www.google.com/maps/search/?api=1&query=${formattedKoordinatX},${formattedKoordinatY}`;
+
+    // Log the URL
+    console.log("Generated URL:", url);
+
+    // Open the URL
+    Linking.openURL(url).catch((err) =>
+      console.error("An error occurred while opening the map", err)
+    );
+  } else {
+    Alert.alert("Koordinatlar bulunamadı.");
+    Alert.alert("Koordinatlar:", KoordinatX, KoordinatY); 
+  }
+};
+
+
+  const renderMoreInfo = () => {
+    if (loading) {
+      
+      return (
+        
+        <View style={styles.modalView}>
+          <ActivityIndicator size="large" color="#ffffff" />
+          <Text style={styles.loadingText}>Loading session details...</Text>
+        </View>
+      );
+    }
+
+    const eventCenter = sessionDetails?.EtkinlikMerkezi;
+
+    return (
+      <Modal
+        renderItem={({ item }) => <ListItem item={item} />}
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(!modalVisible)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <ScrollView>
+              <Text style={styles.modalTitle}>More Information</Text>
+              <Text style={styles.modalText}>
+                {cleanText(event.KisaAciklama)}
+              </Text>
+              {sessionDetails && (
+                <>
+                  <Text style={styles.modalSectionTitle}>Session Details</Text>
+                  {sessionDetails.SeansListesi.map((session, index) => (
+                    <View key={index} style={styles.sessionCard}>
+                      <Text style={styles.sessionText}>
+                        Start: {formatDate(session.SeansBaslangicTarihi)}{" "}
+                        {formatTime(session.SeansBaslangicTarihi)}
+                      </Text>
+                      <Text style={styles.sessionText}>
+                        End: {formatDate(session.SeansBitisTarihi)}{" "}
+                        {formatTime(session.SeansBitisTarihi)}
+                      </Text>
+                      <Text style={styles.sessionText}>
+                        Occupancy: {session.DolulukOranı * 100}%
+                      </Text>
+                      <Text style={styles.sessionText}>
+                        {cleanText(session.BiletSatisAciklama)}
+                      </Text>
+                    </View>
+                  ))}
+                  {eventCenter && (
+                    <>
+                      <Text style={styles.modalSectionTitle}>
+                        Event Center Details
+                      </Text>
+                      <Image
+                        source={{ uri: eventCenter.Resim }}
+                        style={styles.centerImage}
+                      />
+                      <Text style={styles.modalText}>{eventCenter.Adi}</Text>
+                      <Text style={styles.modalText}>
+                        {cleanText(eventCenter.Aciklama)}
+                      </Text>
+                      <Text style={styles.modalText}>
+                        Address: {cleanText(eventCenter.Adres)}
+                      </Text>
+                      <Text style={styles.modalText}>
+                        Phone: {cleanText(eventCenter.Telefon)}
+                      </Text>
+                      <Text style={styles.modalText}>
+                        Coordinates: {eventCenter.KoordinatX},{" "}
+                        {eventCenter.KoordinatY}
+                      </Text>
+                      <Text style={styles.modalText}>
+                        Contact Info: {cleanText(eventCenter.Hakkinda)}
+                      </Text>
+                    </>
+                  )}
+                </>
+              )}
+            </ScrollView>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setModalVisible(!modalVisible)}
+            >
+              <Text style={styles.closeButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <Image source={{ uri: event.KucukAfis }} style={styles.image} />
-        <View style={styles.detailsContainer}>
-          <View style={styles.card}>
-            <FontAwesome
-              name="tag"
-              size={24}
-              color="white"
-              style={styles.icon}
-            />
-            <Text style={styles.title}>{event.Adi}</Text>
-          </View>
-          <View style={styles.card}>
-            <FontAwesome
-              name="info-circle"
-              size={24}
-              color="white"
-              style={styles.icon}
-            />
-            <Text style={styles.description}>
-              {cleanText(event.KisaAciklama)}
-            </Text>
-          </View>
-          <View style={styles.card}>
-            <FontAwesome
-              name="map-marker"
-              size={24}
-              color="white"
-              style={styles.icon}
-            />
-            <Text style={styles.detailText}>{event.EtkinlikMerkezi}</Text>
-          </View>
-          <View style={styles.card}>
-            <View style={styles.dateContainer}>
-              <View style={styles.dateAndTimeContainer}>
-                <FontAwesome
-                  name="calendar"
-                  size={24}
-                  color="white"
-                  style={styles.icon}
-                />
-                {isSameDay(
-                  event.EtkinlikBaslamaTarihi,
-                  event.EtkinlikBitisTarihi
-                ) ? (
-                  <Text style={styles.detailText}>
-                    Tarih: {formatDate(event.EtkinlikBaslamaTarihi)}
-                  </Text>
-                ) : (
-                  <>
-                    <View>
-                      <Text style={styles.detailText}>
-                        Başlangıç: {formatDate(event.EtkinlikBaslamaTarihi)}
-                      </Text>
-                      <Text style={styles.detailText}>
-                        Bitiş: {formatDate(event.EtkinlikBitisTarihi)}
-                      </Text>
-                    </View>
-                  </>
-                )}
-              </View>
-
-              <View style={styles.timeContainer}>
-                <Text style={styles.timeText}>
-                  {formatTime(event.EtkinlikBaslamaTarihi)}
-                </Text>
-                <Text style={styles.timeText}>
-                  {formatTime(event.EtkinlikBitisTarihi)}
-                </Text>
-              </View>
-            </View>
-          </View>
-          <TouchableOpacity style={styles.button} onPress={handleOpenEventPage}>
-            <Text style={styles.buttonText}>Etkinlik Sayfası</Text>
-          </TouchableOpacity>
-          {event.BiletSatisLinki && (
-            <TouchableOpacity style={styles.button} onPress={handleBuyTicket}>
-              <Text style={styles.buttonText}>Bilet Satın Al</Text>
-            </TouchableOpacity>
+      <ScrollView>
+        <View style={styles.headerContainer}>
+          <Text style={styles.eventTitle}>{event.Adi}</Text>
+          {event.Gorsel && (
+            <Image source={{ uri: event.Gorsel }} style={styles.eventImage} />
           )}
+          <Text style={styles.eventDate}>
+            {formatDate(event.EtkinlikBaslamaTarihi)} -{" "}
+            {formatDate(event.EtkinlikBitisTarihi)}
+          </Text>
+          <Text style={styles.eventTime}>
+            {formatTime(event.EtkinlikBaslamaTarihi)} -{" "}
+            {formatTime(event.EtkinlikBitisTarihi)}
+          </Text>
+          <Text style={styles.eventLocation}>
+            Location: {event.EtkinlikMerkezi}
+          </Text>
+        </View>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.button} onPress={handleOpenEventPage}>
+            <Text style={styles.buttonText}>Open Event Page</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={handleBuyTicket}>
+            <Text style={styles.buttonText}>Buy Ticket</Text>
+          </TouchableOpacity>
           <TouchableOpacity style={styles.button} onPress={handleAddToCalendar}>
-            <Text style={styles.buttonText}>Takvime Ekle</Text>
+            <Text style={styles.buttonText}>Add to Calendar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => setModalVisible(true)}
+          >
+            <Text style={styles.buttonText}>More Info</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={handleShowOnMap}>
+            <Text style={styles.buttonText}>Show on Map</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
+      {renderMoreInfo()}
     </SafeAreaView>
   );
 };
@@ -225,85 +331,107 @@ const EventDetail = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#121212", // Siyah arka plan
+    backgroundColor: "#fff",
   },
-  scrollContainer: {
-    flexGrow: 1,
+  headerContainer: {
     padding: 16,
+    alignItems: "center",
   },
-  image: {
+  eventTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+  },
+  eventImage: {
     width: "100%",
     height: 200,
-    borderRadius: 10,
-    marginBottom: 16,
     resizeMode: "cover",
+    marginVertical: 8,
   },
-  detailsContainer: {
-    flex: 1,
-    width: "100%",
+  eventDate: {
+    fontSize: 16,
+    color: "#555",
   },
-  card: {
-    backgroundColor: "#1E1E1E", // Koyu gri arka plan
-    borderRadius: 10,
+  eventTime: {
+    fontSize: 16,
+    color: "#555",
+  },
+  eventLocation: {
+    fontSize: 16,
+    color: "#555",
+  },
+  buttonContainer: {
     padding: 16,
-    marginBottom: 16,
-    flexDirection: "row", // Align items horizontally
-    alignItems: "center", // Center items vertically
-  },
-  icon: {
-    marginRight: 12, // Space between icon and text
-  },
-  title: {
-    fontSize: 24,
-    color: "#FFFFFF",
-    fontWeight: "bold",
-    flex: 1, // Allow title to take up remaining space
-  },
-  description: {
-    fontSize: 16,
-    color: "#FFFFFF",
-    flex: 1, // Allow description to take up remaining space
-  },
-  detailText: {
-    fontSize: 16,
-    color: "#FFFFFF",
-  },
-  dateContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  dateAndTimeContainer: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  timeContainer: {
-    alignItems: "flex-end",
-    color: "#000",
-    backgroundColor: "rgba(0, 0, 0, 1)",
-    borderRadius: 10,
-    padding:4,
-  },
-  timeText: {
-    fontSize: 16,
-    color: "#BB86FC",
   },
   button: {
-    backgroundColor: "#BB86FC",
-    borderRadius: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    backgroundColor: "#007BFF",
+    padding: 10,
+    borderRadius: 5,
+    marginVertical: 5,
     alignItems: "center",
-    justifyContent: "center",
-    marginTop: 8,
   },
   buttonText: {
+    color: "#fff",
     fontSize: 16,
-    color: "#FFFFFF",
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    width: "90%",
+    maxHeight: "80%",
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 16,
+  },
+  modalTitle: {
+    fontSize: 20,
     fontWeight: "bold",
+    marginBottom: 10,
+  },
+  modalSectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginVertical: 10,
+  },
+  modalText: {
+    fontSize: 16,
+    marginBottom: 10,
+  },
+  sessionCard: {
+    padding: 10,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    marginVertical: 5,
+  },
+  sessionText: {
+    fontSize: 14,
+  },
+  centerImage: {
+    width: "100%",
+    height: 150,
+    resizeMode: "cover",
+    marginVertical: 10,
+  },
+  closeButton: {
+    backgroundColor: "#007BFF",
+    padding: 10,
+    borderRadius: 5,
+    alignItems: "center",
+    marginTop: 10,
+  },
+  closeButtonText: {
+    color: "#fff",
+    fontSize: 16,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: "#fff",
+    marginTop: 10,
   },
 });
-
 
 export default EventDetail;

@@ -340,52 +340,49 @@ const styles = StyleSheet.create({
   },
   itemContainer: {
     flex: 1,
+    margin: 10,
     backgroundColor: "#fff",
-    margin: 6,
-    borderRadius: 8,
+    borderRadius: 5,
     overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
     elevation: 3,
-    justifyContent: "flex-start",
   },
   labelContainer: {
-    padding: 8,
     flexDirection: "row",
     justifyContent: "space-between",
-    borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
+    padding: 5,
   },
   labelFree: {
-    color: "green",
+    color: "#fff",
+    backgroundColor: "#00ff00", // Yeşil arka plan
+    padding: 3,
+    borderRadius: 5,
+    fontSize: 10,
   },
   labelPaid: {
-    color: "white",
-    backgroundColor: "#BB86FC",
-    fontWeight: 400,
-    padding:2
+    backgroundColor: "#ff0000", // Kırmızı arka plan
   },
   labelType: {
-    color: "gray",
-    //tür etiketi sinema ise background mavi olacak
-
-    padding: 2,
-    textAlign: "center",
-    borderRadius: 4,
+    color: "#fff",
+    padding: 3,
+    borderRadius: 5,
+    fontSize: 10,
   },
   itemImage: {
     width: "100%",
-    height: 100,
+    height: 150,
   },
   itemTextContainer: {
-    padding: 8,
+    padding: 10,
   },
   itemTitle: {
+    fontSize: 16,
     fontWeight: "bold",
     textAlign: "center",
   },
+  listContent: {
+    paddingBottom: 20,
+  },
+
   itemDescription: {
     color: "gray",
   },
