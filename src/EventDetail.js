@@ -20,6 +20,21 @@ const EventDetail = ({ route }) => {
 
   const baseURL = "https://kultursanat.izmir.bel.tr/Etkinlikler";
 
+  useEffect(() => {
+    (async () => {
+      const { status } = await Calendar.requestCalendarPermissionsAsync();
+      if (status === "granted") {
+        setHasCalendarPermission(true);
+        const calendars = await Calendar.getCalendarsAsync(
+          Calendar.EntityTypes.EVENT
+        );
+        const defaultCalendar =
+          calendars.find((cal) => cal.isPrimary) || calendars[0];
+        setDefaultCalendarId(defaultCalendar.id);
+      }
+    })();
+  }, []);
+
   // Tarih formatlama
   const formatDate = (dateString) => {
     if (!dateString) return "";
@@ -87,7 +102,31 @@ const EventDetail = ({ route }) => {
     }
   };
 
-  
+  const handleAddToCalendar = async () => {
+    if (!hasCalendarPermission) {
+      Alert.alert("Takvim izni gerekli");
+      return;
+    }
+
+    try {
+      const eventDetails = {
+        title: event.Adi,
+        startDate: new Date(event.EtkinlikBaslamaTarihi),
+        endDate: new Date(event.EtkinlikBitisTarihi),
+        timeZone: "GMT",
+        location: event.EtkinlikMerkezi,
+      };
+
+      const eventId = await Calendar.createEventAsync(
+        defaultCalendarId,
+        eventDetails
+      );
+      Alert.alert("Etkinlik takvime eklendi");
+    } catch (error) {
+      Alert.alert("Etkinlik takvime eklenirken bir hata oluştu");
+      console.error("Error adding event to calendar:", error);
+    }
+  };
 
   const eventStartDate = new Date(event.EtkinlikBaslamaTarihi);
   const eventEndDate = new Date(event.EtkinlikBitisTarihi);
@@ -227,12 +266,12 @@ const styles = StyleSheet.create({
   dateContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
   },
   dateAndTimeContainer: {
     flex: 1,
   },
   timeContainer: {
-    flex: 1,
     alignItems: "flex-end",
   },
   timeText: {
@@ -240,15 +279,18 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
   },
   button: {
-    backgroundColor: "#6200EE",
-    padding: 16,
+    backgroundColor: "#BB86FC",
     borderRadius: 10,
-    marginBottom: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     alignItems: "center",
+    justifyContent: "center",
+    marginTop: 8,
   },
   buttonText: {
+    fontSize: 16,
     color: "#FFFFFF",
-    fontSize: 18,
+    fontWeight: "bold",
   },
 });
 
