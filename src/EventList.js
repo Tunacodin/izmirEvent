@@ -309,6 +309,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#121212", // Siyah arka plan
     paddingTop: Platform.OS === "ios" ? 60 : 40,
   },
+  scrollContainer: {
+    flexGrow: 1,
+    padding: 16,
+  },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -334,6 +338,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     flexGrow: 1,
+    paddingBottom: 20,
   },
   columnWrapper: {
     justifyContent: "space-between",
@@ -376,13 +381,9 @@ const styles = StyleSheet.create({
   },
   itemTitle: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: "600",
     textAlign: "center",
   },
-  listContent: {
-    paddingBottom: 20,
-  },
-
   itemDescription: {
     color: "gray",
   },
@@ -448,6 +449,78 @@ const styles = StyleSheet.create({
   },
   retryButtonText: {
     color: "#fff",
+    fontWeight: "bold",
+  },
+  image: {
+    width: "100%",
+    height: 200,
+    borderRadius: 10,
+    marginBottom: 16,
+    resizeMode: "cover",
+  },
+  detailsContainer: {
+    flex: 1,
+    width: "100%",
+  },
+  card: {
+    backgroundColor: "#1E1E1E", // Koyu gri arka plan
+    borderRadius: 10,
+    padding: 16,
+    marginBottom: 16,
+    flexDirection: "row", // Align items horizontally
+    alignItems: "center", // Center items vertically
+  },
+  icon: {
+    marginRight: 12, // Space between icon and text
+  },
+  title: {
+    fontSize: 24,
+    color: "#FFFFFF",
+    fontWeight: "bold",
+    flex: 1, // Allow title to take up remaining space
+  },
+  description: {
+    fontSize: 16,
+    color: "#FFFFFF",
+    flex: 1, // Allow description to take up remaining space
+  },
+  detailText: {
+    fontSize: 16,
+    color: "#FFFFFF",
+  },
+  dateContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  dateAndTimeContainer: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  timeContainer: {
+    alignItems: "flex-end",
+    color: "#000",
+    backgroundColor: "rgba(0, 0, 0, 1)",
+    borderRadius: 10,
+    padding: 4,
+  },
+  timeText: {
+    fontSize: 16,
+    color: "#BB86FC",
+  },
+  button: {
+    backgroundColor: "#BB86FC",
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 8,
+  },
+  buttonText: {
+    fontSize: 16,
+    color: "#FFFFFF",
     fontWeight: "bold",
   },
 });
