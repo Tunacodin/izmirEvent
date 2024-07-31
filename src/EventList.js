@@ -59,33 +59,31 @@ const EventList = ({ navigation }) => {
     setSelectedPrice(price === selectedPrice ? "" : price); // Toggle the selected price
   };
 
-  const filterEvents = () => {
-    let filteredData = events;
+const filterEvents = () => {
+  const filters = [
+    (item) =>
+      !searchTerm ||
+      item.Adi.toLocaleLowerCase("tr-TR").includes(
+        searchTerm.toLocaleLowerCase("tr-TR")
+      ),
+    (item) =>
+      selectedTypes.size === 0 ||
+      Array.from(selectedTypes).some(
+        (type) =>
+          item.Tur.toLocaleLowerCase("tr-TR") ===
+          type.toLocaleLowerCase("tr-TR")
+      ),
+    (item) =>
+      !selectedPrice ||
+      (selectedPrice === "free" ? item.UcretsizMi : !item.UcretsizMi),
+  ];
 
-    if (searchTerm) {
-      filteredData = filteredData.filter((item) =>
-        item.Adi.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
+  const filteredData = events.filter((item) =>
+    filters.every((filter) => filter(item))
+  );
 
-    if (selectedTypes.size > 0) {
-      filteredData = filteredData.filter((item) => {
-        const eventType = item.Tur.toLowerCase();
-        const selectedTypesArray = Array.from(selectedTypes).map((type) =>
-          type.toLowerCase()
-        );
-        return selectedTypesArray.includes(eventType);
-      });
-    }
-
-    if (selectedPrice) {
-      filteredData = filteredData.filter((item) =>
-        selectedPrice === "free" ? item.UcretsizMi : !item.UcretsizMi
-      );
-    }
-
-    setFilteredEvents(filteredData);
-  };
+  setFilteredEvents(filteredData);
+};
 
   const handleLoadMore = () => {
     if (eventStatus === "succeeded") {
@@ -262,7 +260,6 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: "#121212", // Siyah arka plan
     paddingTop: Platform.OS === "ios" ? 60 : 40,
-  
   },
   searchContainer: {
     flexDirection: "row",
@@ -295,22 +292,21 @@ const styles = StyleSheet.create({
   },
   itemContainer: {
     flex: 1,
-    backgroundColor: "#fff",
-    margin: 8,
+    marginBottom: 16,
     borderRadius: 8,
-    overflow: "hidden",
+    backgroundColor: "#fff",
+    elevation: 3,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.2,
     shadowRadius: 4,
-    elevation: 3,
+    overflow: "hidden",
+    marginHorizontal: 8,
   },
   labelContainer: {
-    padding: 8,
     flexDirection: "row",
     justifyContent: "space-between",
-    borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
+    padding: 4,
   },
   labelFree: {
     color: "green",
@@ -320,23 +316,24 @@ const styles = StyleSheet.create({
   },
   labelType: {
     color: "gray",
-    //tür etiketi sinema ise background mavi olacak
-    
-    paddingHorizontal: 8,
-    borderRadius: 4,
+    fontWeight: "bold",
   },
   itemImage: {
     width: "100%",
-    height: 100,
+    height: 120,
+    resizeMode: "cover",
   },
   itemTextContainer: {
     padding: 8,
   },
   itemTitle: {
+    fontSize: 16,
     fontWeight: "bold",
+    color: "#000",
   },
   itemDescription: {
-    color: "gray",
+    fontSize: 14,
+    color: "#444",
   },
   modalContainer: {
     flex: 1,
@@ -345,11 +342,15 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContent: {
-    backgroundColor: "#fff",
-    padding: 16,
-    borderRadius: 8,
     width: "80%",
-    alignItems: "center",
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    padding: 16,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
   modalTitle: {
     fontSize: 18,
@@ -358,49 +359,55 @@ const styles = StyleSheet.create({
   },
   filterOptionContainer: {
     marginBottom: 16,
-    width: "100%",
   },
   filterOptionTitle: {
+    fontSize: 16,
     fontWeight: "bold",
     marginBottom: 8,
   },
   filterOptionButton: {
-    padding: 12,
-    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     backgroundColor: "#ddd",
+    borderRadius: 4,
     marginBottom: 8,
-    alignItems: "center",
   },
   filterOptionButtonSelected: {
-    backgroundColor: "#2196F3",
+    backgroundColor: "#007bff",
   },
   filterOptionButtonText: {
-    color: "#000",
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#fff",
   },
   modalCloseButton: {
-    marginTop: 16,
+    backgroundColor: "#007bff",
     padding: 12,
     borderRadius: 8,
-    backgroundColor: "#2196F3",
-  },
-  modalCloseButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
-  },
-  errorText: {
-    color: "red",
-    fontSize: 16,
-    marginBottom: 16,
-  },
-  retryButton: {
-    padding: 10,
-    borderRadius: 8,
-    backgroundColor: "#2196F3",
     alignItems: "center",
   },
-  retryButtonText: {
-    color: "#fff",
+  modalCloseButtonText: {
+    fontSize: 16,
     fontWeight: "bold",
+    color: "#fff",
+  },
+  errorText: {
+    fontSize: 16,
+    color: "red",
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  retryButton: {
+    backgroundColor: "#007bff",
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    alignSelf: "center",
+  },
+  retryButtonText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#fff",
   },
 });
 
