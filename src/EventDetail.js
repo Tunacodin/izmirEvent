@@ -27,6 +27,7 @@ const [KoordinatX, setKoordinatX] = useState(null);
   const [KoordinatY, setKoordinatY] = useState(null);
   
   const sessionDetailsURL = `https://openapi.izmir.bel.tr/api/ibb/kultursanat/etkinlikler/${event.Id}`; // Use provided API URL
+  
 
   useEffect(() => {
     (async () => {
@@ -54,9 +55,7 @@ const [KoordinatX, setKoordinatX] = useState(null);
     try {
       const response = await fetch(sessionDetailsURL);
       const data = await response.json();
-   
       setSessionDetails(data);
-      console.log(data);
     } catch (error) {
       Alert.alert("Error fetching session details.");
       console.error("Error fetching session details:", error);
@@ -158,8 +157,8 @@ const [KoordinatX, setKoordinatX] = useState(null);
     }
   };
 
-const handleShowOnMap = () => {
-  const { KoordinatX, KoordinatY } = event.Id;
+  const handleShowOnMap = () => {
+  const { KoordinatX, KoordinatY } = sessionDetails.EtkinlikMerkezi;
   if (KoordinatX !== undefined && KoordinatY !== undefined) {
     // Replace commas with dots
     const formattedKoordinatX = KoordinatX.toString().replace(",", ".");
@@ -175,16 +174,19 @@ const handleShowOnMap = () => {
     // Construct the URL
     const url = `https://www.google.com/maps/search/?api=1&query=${formattedKoordinatX},${formattedKoordinatY}`;
 
-    // Log the URL
-    console.log("Generated URL:", url);
-
+  
     // Open the URL
     Linking.openURL(url).catch((err) =>
       console.error("An error occurred while opening the map", err)
     );
   } else {
-    Alert.alert("Koordinatlar bulunamadı.");
-    Alert.alert("Koordinatlar:", KoordinatX, KoordinatY); 
+    // Combine coordinates into a single string
+    const coordinatesMessage = `Koordinat X: ${
+      KoordinatX || "Bilinmiyor"
+    }, Koordinat Y: ${KoordinatY || "Bilinmiyor"}`;
+
+    // Show alert with coordinates
+    Alert.alert("Koordinatlar bulunamadı.", coordinatesMessage);
   }
 };
 
