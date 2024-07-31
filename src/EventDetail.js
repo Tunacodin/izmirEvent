@@ -194,6 +194,7 @@ const EventDetail = ({ route }) => {
                   </>
                 )}
               </View>
+
               <View style={styles.timeContainer}>
                 <Text style={styles.timeText}>
                   {formatTime(event.EtkinlikBaslamaTarihi)}
@@ -246,18 +247,22 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 16,
     marginBottom: 16,
+    flexDirection: "row", // Align items horizontally
+    alignItems: "center", // Center items vertically
   },
   icon: {
-    marginBottom: 8,
+    marginRight: 12, // Space between icon and text
   },
   title: {
     fontSize: 24,
     color: "#FFFFFF",
     fontWeight: "bold",
+    flex: 1, // Allow title to take up remaining space
   },
   description: {
     fontSize: 16,
     color: "#FFFFFF",
+    flex: 1, // Allow description to take up remaining space
   },
   detailText: {
     fontSize: 16,
@@ -270,13 +275,19 @@ const styles = StyleSheet.create({
   },
   dateAndTimeContainer: {
     flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
   },
   timeContainer: {
     alignItems: "flex-end",
+    color: "#000",
+    backgroundColor: "rgba(0, 0, 0, 1)",
+    borderRadius: 10,
+    padding:4,
   },
   timeText: {
     fontSize: 16,
-    color: "#FFFFFF",
+    color: "#BB86FC",
   },
   button: {
     backgroundColor: "#BB86FC",
@@ -293,5 +304,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
+
 
 export default EventDetail;

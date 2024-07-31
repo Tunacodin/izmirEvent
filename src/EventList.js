@@ -20,7 +20,7 @@ const EventList = ({ navigation }) => {
   const events = useSelector((state) => state.events.events);
   const eventStatus = useSelector((state) => state.events.status);
   const error = useSelector((state) => state.events.error);
-
+  const type = useSelector((state) => state.events.type);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredEvents, setFilteredEvents] = useState(events);
   const [selectedTypes, setSelectedTypes] = useState(new Set());
@@ -29,16 +29,52 @@ const EventList = ({ navigation }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false); // Yenileme durumu
 
+const getLabelStyle = (type) => {
+  let backgroundColor;
+  let color;
+
+  switch (type) {
+    case "SİNEMA":
+      backgroundColor = "#FF5733";
+
+      color = "#fff"; // Beyaz metin
+      break;
+    case "TİYATRO":
+      backgroundColor = "#C70039";
+      color = "#fff"; // Beyaz metin
+      break;
+    case "SERGİ":
+      backgroundColor = "#900C3F";
+      color = "#fff"; // Beyaz metin
+      break;
+    case "KONSER":
+      backgroundColor = "#581845";
+      color = "#fff"; // Beyaz metin
+      break;
+    case "DİĞER":
+      backgroundColor = "#DAF7A6";
+      color = "#000"; // Siyah metin
+      break;
+    default:
+      backgroundColor = "#ddd";
+      color = "#000"; // Varsayılan siyah metin
+      break;
+  }
+
+  return {
+    backgroundColor,
+    color,
+  };
+};
+
   useEffect(() => {
     if (eventStatus === "idle") {
       dispatch(fetchEvents());
     }
   }, [eventStatus, dispatch]);
-
   useEffect(() => {
     filterEvents();
   }, [events, searchTerm, selectedTypes, selectedPrice]); // selectedPrice eklenmiş
-
   const handleSearch = (text) => {
     setSearchTerm(text);
   };
@@ -47,6 +83,7 @@ const EventList = ({ navigation }) => {
     setSelectedTypes((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(type)) {
+        
         newSet.delete(type);
       } else {
         newSet.add(type);
@@ -120,9 +157,19 @@ const filterEvents = () => {
     >
       <View style={styles.labelContainer}>
         <Text style={[styles.labelFree, item.UcretsizMi && styles.labelPaid]}>
-          {item.UcretsizMi ? "Ücretsiz" : "Ücretli"}
+          {item.UcretsizMi ? "ÜCRETSİZ" : "ÜCRETLİ"}
         </Text>
-        <Text style={styles.labelType}>{item.Tur}</Text>
+        <Text
+          style={[
+            styles.labelType,
+            
+             
+    getLabelStyle(item.Tur) // Arka plan ve metin rengi dinamik olarak ayarlanıyor
+            
+          ]}
+        >
+          {item.Tur}
+        </Text>
       </View>
       <Image
         source={{ uri: item.KucukAfis }}
@@ -133,9 +180,6 @@ const filterEvents = () => {
       />
       <View style={styles.itemTextContainer}>
         <Text style={styles.itemTitle}>{item.Adi}</Text>
-        <Text style={styles.itemDescription} numberOfLines={2}>
-          {item.KisaAciklama}
-        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -175,6 +219,7 @@ const filterEvents = () => {
           data={filteredEvents}
           renderItem={renderItem}
           keyExtractor={(item) => item.Id.toString()}
+          
           contentContainerStyle={styles.listContent}
           numColumns={2}
           columnWrapperStyle={styles.columnWrapper}
@@ -207,6 +252,7 @@ const filterEvents = () => {
                         styles.filterOptionButton,
                         selectedTypes.has(type) &&
                           styles.filterOptionButtonSelected,
+                        
                       ]}
                       onPress={() => handleTypeSelect(type)}
                     >
@@ -254,6 +300,8 @@ const filterEvents = () => {
   }
 };
 
+
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -292,48 +340,54 @@ const styles = StyleSheet.create({
   },
   itemContainer: {
     flex: 1,
-    marginBottom: 16,
-    borderRadius: 8,
     backgroundColor: "#fff",
-    elevation: 3,
+    margin: 6,
+    borderRadius: 8,
+    overflow: "hidden",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
-    overflow: "hidden",
-    marginHorizontal: 8,
+    elevation: 3,
+    justifyContent: "flex-start",
   },
   labelContainer: {
+    padding: 8,
     flexDirection: "row",
     justifyContent: "space-between",
-    padding: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
   },
   labelFree: {
     color: "green",
   },
   labelPaid: {
-    color: "red",
+    color: "white",
+    backgroundColor: "#BB86FC",
+    fontWeight: 400,
+    padding:2
   },
   labelType: {
     color: "gray",
-    fontWeight: "bold",
+    //tür etiketi sinema ise background mavi olacak
+
+    padding: 2,
+    textAlign: "center",
+    borderRadius: 4,
   },
   itemImage: {
     width: "100%",
-    height: 120,
-    resizeMode: "cover",
+    height: 100,
   },
   itemTextContainer: {
     padding: 8,
   },
   itemTitle: {
-    fontSize: 16,
     fontWeight: "bold",
-    color: "#000",
+    textAlign: "center",
   },
   itemDescription: {
-    fontSize: 14,
-    color: "#444",
+    color: "gray",
   },
   modalContainer: {
     flex: 1,
@@ -342,15 +396,11 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContent: {
-    width: "80%",
     backgroundColor: "#fff",
-    borderRadius: 8,
     padding: 16,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    borderRadius: 8,
+    width: "80%",
+    alignItems: "center",
   },
   modalTitle: {
     fontSize: 18,
@@ -359,55 +409,49 @@ const styles = StyleSheet.create({
   },
   filterOptionContainer: {
     marginBottom: 16,
+    width: "100%",
   },
   filterOptionTitle: {
-    fontSize: 16,
     fontWeight: "bold",
     marginBottom: 8,
   },
   filterOptionButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    padding: 12,
+    borderRadius: 8,
     backgroundColor: "#ddd",
-    borderRadius: 4,
     marginBottom: 8,
+    alignItems: "center",
   },
   filterOptionButtonSelected: {
-    backgroundColor: "#007bff",
+    backgroundColor: "#2196F3",
   },
   filterOptionButtonText: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: "#fff",
+    color: "#000",
   },
   modalCloseButton: {
-    backgroundColor: "#007bff",
+    marginTop: 16,
     padding: 12,
     borderRadius: 8,
-    alignItems: "center",
+    backgroundColor: "#2196F3",
   },
   modalCloseButtonText: {
-    fontSize: 16,
-    fontWeight: "bold",
     color: "#fff",
+    fontWeight: "bold",
   },
   errorText: {
-    fontSize: 16,
     color: "red",
+    fontSize: 16,
     marginBottom: 16,
-    textAlign: "center",
   },
   retryButton: {
-    backgroundColor: "#007bff",
-    padding: 12,
+    padding: 10,
     borderRadius: 8,
+    backgroundColor: "#2196F3",
     alignItems: "center",
-    alignSelf: "center",
   },
   retryButtonText: {
-    fontSize: 16,
-    fontWeight: "bold",
     color: "#fff",
+    fontWeight: "bold",
   },
 });
 
