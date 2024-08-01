@@ -17,6 +17,7 @@ import {
 import * as Calendar from "expo-calendar";
 import { FontAwesome } from "@expo/vector-icons";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import { MaterialIcons } from "@expo/vector-icons";
 const EventDetail = ({ route }) => {
   const { event } = route.params;
   const [hasCalendarPermission, setHasCalendarPermission] = useState(false);
@@ -169,14 +170,7 @@ const EventDetail = ({ route }) => {
   };
 
 const renderMoreInfo = () => {
-  if (loading) {
-    return (
-      <View style={styles.modalView}>
-        <ActivityIndicator size="large" color="#ffffff" />
-        <Text style={styles.loadingText}>Loading session details...</Text>
-      </View>
-    );
-  }
+  
 
   const eventCenter = sessionDetails?.EtkinlikMerkezi;
 
@@ -190,35 +184,14 @@ const renderMoreInfo = () => {
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
           <ScrollView>
-            <Text style={styles.modalTitle}>More Information</Text>
-            <Text style={styles.modalText}>
-              {cleanText(event.KisaAciklama)}
-            </Text>
+           
             {sessionDetails && (
               <>
-                <Text style={styles.modalSectionTitle}>Session Details</Text>
-                {sessionDetails.SeansListesi.map((session, index) => (
-                  <View key={index} style={styles.sessionCard}>
-                    <Text style={styles.sessionText}>
-                      Start: {formatDate(session.SeansBaslangicTarihi)}{" "}
-                      {formatTime(session.SeansBaslangicTarihi)}
-                    </Text>
-                    <Text style={styles.sessionText}>
-                      End: {formatDate(session.SeansBitisTarihi)}{" "}
-                      {formatTime(session.SeansBitisTarihi)}
-                    </Text>
-                    <Text style={styles.sessionText}>
-                      Occupancy: {session.DolulukOranı * 100}%
-                    </Text>
-                    <Text style={styles.sessionText}>
-                      {cleanText(session.BiletSatisAciklama)}
-                    </Text>
-                  </View>
-                ))}
+               
                 {eventCenter && (
                   <>
                     <Text style={styles.modalSectionTitle}>
-                      Event Center Details
+                      Etkinlik Merkezi 
                     </Text>
                     <Image
                       source={{ uri: eventCenter.Resim }}
@@ -229,23 +202,20 @@ const renderMoreInfo = () => {
                       {cleanText(eventCenter.Aciklama)}
                     </Text>
                     <Text style={styles.modalText}>
-                      Address: {cleanText(eventCenter.Adres)}
+                      Adres: {cleanText(eventCenter.Adres)}
                     </Text>
                     <Text style={styles.modalText}>
                       Phone: {cleanText(eventCenter.Telefon)}
                     </Text>
+                   
                     <Text style={styles.modalText}>
-                      Coordinates: {eventCenter.KoordinatX},{" "}
-                      {eventCenter.KoordinatY}
-                    </Text>
-                    <Text style={styles.modalText}>
-                      Contact Info: {cleanText(eventCenter.Hakkinda)}
+                      İletişim: {cleanText(eventCenter.Hakkinda)}
                     </Text>
                     <TouchableOpacity
                       style={styles.mapButton}
-                      onPress={handleShowOnMap}
+                      onPress={handleOpenEventPage}
                     >
-                      <Text style={styles.mapButtonText}>Show on Map</Text>
+                      <Text style={styles.mapButtonText}>Web Sayfasına Git</Text>
                     </TouchableOpacity>
                   </>
                 )}
@@ -339,7 +309,7 @@ const renderMoreInfo = () => {
             style={styles.button}
             onPress={() => setModalVisible(!modalVisible)}
           >
-            <Icon name="info" size={20} color="#FFFFFF" style={styles.icon} />
+            <Icon name="info" size={24} color="#121212" style={styles.icon} />
             <Text style={styles.buttonText}>Detaylar</Text>
           </TouchableOpacity>
 
@@ -359,20 +329,38 @@ const renderMoreInfo = () => {
               style={styles.calenderButton}
               onPress={handleAddToCalendar}
             >
-              <Icon
-                name="calendar-today"
-                size={20}
-                color="#FFFFFF"
-                style={styles.icon}
-              />
-              <Text style={styles.buttonText}>Takvime Ekle</Text>
+              <Icon name="calendar-today" size={30} color="#FFF" />
+              <Text style={{color:"#FFF",fontWeight:"600"}}>Takvime Ekle</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.mapButton}
+              style={{
+                backgroundColor: "white",
+
+                borderRadius: 10,
+                paddingVertical: 12,
+                paddingHorizontal: 16,
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 2,
+                height: 80,
+              }}
               onPress={handleShowOnMap}
             >
-              <Icon name="map" size={20} color="#FFFFFF" style={styles.icon} />
-              <Text style={styles.buttonText}>Haritada Aç</Text>
+              <Text>
+                <MaterialIcons name="location-on" size={32} color="blue" />{" "}
+              </Text>
+              <View>
+                <Text
+                  style={{
+                    color: "blue",
+                    fontSize: 14,
+
+                    fontWeight: "600",
+                  }}
+                >
+                  Haritada Aç
+                </Text>
+              </View>
             </TouchableOpacity>
           </View>
         </View>
@@ -382,30 +370,37 @@ const renderMoreInfo = () => {
   );
 };
 
+const colors = {
+  button: "#C147E9",
+  buttonBorder: "#2D033B",
+  darkBlack: "#121212",
+  white: "#1E1E1E",
+ 
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#121212", // Siyah arka plan
+    backgroundColor: colors.darkBlack, // Siyah arka plan
   },
   scrollContainer: {
     flexGrow: 1,
-    padding: 16,
   },
   image: {
     width: "100%",
     height: 200,
     borderRadius: 10,
-    marginBottom: 16,
     resizeMode: "cover",
   },
   detailsContainer: {
     flex: 1,
-    width: "100%",
-        justifyContent:"center", //
+    padding: 12,
 
+    width: "100%",
+    justifyContent: "center", //
   },
   card: {
-    backgroundColor: "#1E1E1E", // Koyu gri arka plan
+    backgroundColor: colors.white, // Koyu gri arka plan
     borderRadius: 10,
     padding: 16,
     marginBottom: 16,
@@ -451,35 +446,42 @@ const styles = StyleSheet.create({
     color: "#BB86FC",
   },
   button: {
-    backgroundColor: "#BB86FC",
+    backgroundColor:"white",
     borderRadius: 10,
-    paddingVertical: 12,
+    paddingVertical: 24,
     alignItems: "center",
     justifyContent: "center",
+    flexDirection: "row",
     marginTop: 8,
-    width: "70%",
+    width: "60%",
     alignSelf: "center",
   },
   buttonContainer: {
     backgroundColor: "rgba(0, 0, 0, 1)",
     borderRadius: 10,
-width: "100%",
+    width: "100%",
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-evenly",
+    justifyContent: "center",
+    gap: 6,
     marginTop: 6,
   },
   calenderButton: {
-    backgroundColor: "#BB86FC",
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor:"white",
     borderRadius: 10,
     paddingVertical: 12,
     paddingHorizontal: 16,
     alignItems: "center",
     justifyContent: "center",
+    gap: 6,
     height: 80,
   },
   mapButton: {
-    backgroundColor: "#BB86FC",
+    backgroundColor: "white",
+    borderWidth: 1,
+    borderColor: "blue",
     borderRadius: 10,
     paddingVertical: 12,
     paddingHorizontal: 16,
@@ -488,9 +490,12 @@ width: "100%",
     marginTop: 8,
     height: 80,
   },
+  mapButtonText: {
+    color: "blue",
+  },
   buttonText: {
-    fontSize: 16,
-    color: "#FFFFFF",
+    fontSize: 14,
+    color: colors.white,
     fontWeight: "bold",
   },
   modalContainer: {
@@ -503,11 +508,11 @@ width: "100%",
     backgroundColor: "white",
     borderRadius: 8,
     padding: 16,
-    width: "80%",
+    width: "90%",
     height: "80%",
   },
   modalTitle: {
-    fontSize: 24,
+    fontSize: 14,
     fontWeight: "bold",
     marginBottom: 16,
   },
@@ -538,7 +543,9 @@ width: "100%",
     marginBottom: 12,
   },
   mapButton: {
-    backgroundColor: "#007BFF",
+    backgroundColor: "#C147E9",
+    borderWidth: 1,
+    borderColor: "#C147E9",
     padding: 12,
     borderRadius: 8,
     marginTop: 16,
@@ -547,10 +554,6 @@ width: "100%",
   mapButtonText: {
     color: "white",
     fontSize: 16,
-  },
-  loadingText: {
-    color: "#ffffff",
-    marginTop: 8,
   },
 });
 
