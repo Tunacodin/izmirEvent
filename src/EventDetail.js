@@ -183,47 +183,61 @@ const renderMoreInfo = () => {
     >
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
+          {sessionDetails && (
+            <Image
+              source={{ uri: eventCenter.Resim }}
+              style={styles.centerImage}
+            />
+          )}
           <ScrollView>
-           
             {sessionDetails && (
               <>
-               
-                {eventCenter && (
-                  <>
-                    <Text style={styles.modalSectionTitle}>
-                      Etkinlik Merkezi 
-                    </Text>
-                    <Image
-                      source={{ uri: eventCenter.Resim }}
-                      style={styles.centerImage}
-                    />
-                    <Text style={styles.modalText}>{eventCenter.Adi}</Text>
-                    <Text style={styles.modalText}>
-                      {cleanText(eventCenter.Aciklama)}
-                    </Text>
-                    <Text style={styles.modalText}>
-                      Adres: {cleanText(eventCenter.Adres)}
-                    </Text>
-                    <Text style={styles.modalText}>
-                      Phone: {cleanText(eventCenter.Telefon)}
-                    </Text>
-                   
-                    <Text style={styles.modalText}>
-                      İletişim: {cleanText(eventCenter.Hakkinda)}
-                    </Text>
-                    <TouchableOpacity
-                      style={styles.mapButton}
-                      onPress={handleOpenEventPage}
-                    >
-                      <Text style={styles.mapButtonText}>Web Sayfasına Git</Text>
-                    </TouchableOpacity>
-                  </>
-                )}
+                <View style={{
+                  padding: 16,
+                }}>
+                  {eventCenter && (
+                    <>
+                      <Text style={styles.centerName}>{eventCenter.Adi}</Text>
+                      <Text style={styles.centerDescription}>
+                        {cleanText(eventCenter.Aciklama)}
+                      </Text>
+                      {eventCenter.Adres && (
+                        <View style={styles.addressContainer}>
+                          <Text style={styles.addressLabel}>Adres:</Text>
+                          <Text style={styles.address}>
+                            {cleanText(eventCenter.Adres)}
+                          </Text>
+                        </View>
+                      )}
+                      {eventCenter.Telefon && (
+                        <Text style={styles.phone}>
+                          Phone: {cleanText(eventCenter.Telefon)}
+                        </Text>
+                      )}
+                      {eventCenter.Iletisim && (
+                        <View>
+                          <Text style={styles.contactLabel}>İletişim:</Text>
+                          <Text style={styles.contact}>
+                            {cleanText(eventCenter.Iletisim)}
+                          </Text>
+                        </View>
+                      )}
+                      <TouchableOpacity
+                        style={styles.webButton}
+                        onPress={handleOpenEventPage}
+                      >
+                        <Text style={styles.webButtonText}>
+                          Web Sayfasına Git
+                        </Text>
+                      </TouchableOpacity>
+                    </>
+                  )}
+                </View>
               </>
             )}
           </ScrollView>
           <Button
-            title="Close"
+            title="Kapat"
             onPress={() => setModalVisible(!modalVisible)}
           />
         </View>
@@ -313,24 +327,29 @@ const renderMoreInfo = () => {
             <Text style={styles.buttonText}>Detaylar</Text>
           </TouchableOpacity>
 
-          {event.BiletSatisLinki && (
-            <TouchableOpacity style={styles.button} onPress={handleBuyTicket}>
-              <Icon
-                name="local-offer"
-                size={20}
-                color="#FFFFFF"
-                style={styles.icon}
-              />
-              <Text style={styles.buttonText}>Bilet Satın Al</Text>
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity
+            style={[styles.button, event.UcretsizMi && styles.disabledButton]}
+            onPress={!event.UcretsizMi ? handleBuyTicket : null}
+            disabled={event.UcretsizMi}
+          >
+            <Icon
+              name="local-offer"
+              size={20}
+              color="#121212"
+              style={styles.icon}
+            />
+            <Text style={styles.buttonText}>Bilet Satın Al</Text>
+          </TouchableOpacity>
+
           <View style={styles.buttonContainer}>
             <TouchableOpacity
               style={styles.calenderButton}
               onPress={handleAddToCalendar}
             >
               <Icon name="calendar-today" size={30} color="#FFF" />
-              <Text style={{color:"#FFF",fontWeight:"600"}}>Takvime Ekle</Text>
+              <Text style={{ color: "#FFF", fontWeight: "600" }}>
+                Takvime Ekle
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={{
@@ -395,7 +414,6 @@ const styles = StyleSheet.create({
   detailsContainer: {
     flex: 1,
     padding: 12,
-
     width: "100%",
     justifyContent: "center", //
   },
@@ -446,7 +464,7 @@ const styles = StyleSheet.create({
     color: "#BB86FC",
   },
   button: {
-    backgroundColor:"white",
+    backgroundColor: "white",
     borderRadius: 10,
     paddingVertical: 24,
     alignItems: "center",
@@ -469,7 +487,7 @@ const styles = StyleSheet.create({
   calenderButton: {
     backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor:"white",
+    borderColor: "white",
     borderRadius: 10,
     paddingVertical: 12,
     paddingHorizontal: 16,
@@ -502,59 +520,77 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(0, 0, 0, 0.8)",
   },
   modalContent: {
-    backgroundColor: "white",
-    borderRadius: 8,
-    padding: 16,
     width: "90%",
-    height: "80%",
-  },
-  modalTitle: {
-    fontSize: 14,
-    fontWeight: "bold",
-    marginBottom: 16,
-  },
-  modalText: {
-    fontSize: 16,
-    marginBottom: 16,
-  },
-  modalSectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 8,
-  },
-  sessionCard: {
-    backgroundColor: "#f8f9fa",
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  sessionText: {
-    fontSize: 16,
-    marginBottom: 4,
+    maxHeight: "90%",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 10,
+    padding: 20,
+    alignItems: "center",
   },
   centerImage: {
     width: "100%",
     height: 200,
     resizeMode: "cover",
-    borderRadius: 8,
-    marginBottom: 12,
+    borderRadius: 10,
+    marginBottom: 20,
   },
-  mapButton: {
-    backgroundColor: "#C147E9",
-    borderWidth: 1,
-    borderColor: "#C147E9",
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 16,
-    alignItems: "center",
+  centerName: {
+    fontSize: 24,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 10,
   },
-  mapButtonText: {
-    color: "white",
+  centerDescription: {
     fontSize: 16,
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  addressContainer: {
+    flexDirection: "row",
+    marginBottom: 10,
+  },
+  addressLabel: {
+    fontWeight: "bold",
+  },
+  address: {
+    flex: 1,
+    marginLeft: 5,
+  },
+  phone: {
+    fontSize: 16,
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  contactLabel: {
+    fontWeight: "bold",
+    textAlign: "left",
+    marginBottom: 5,
+  },
+  contact: {
+    textAlign: "left",
+    marginBottom: 10,
+  },
+  webButton: {
+    backgroundColor: colors.button,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  webButtonText: {
+    color: "#FFFFFF",
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  disabledButton: {
+    backgroundColor: "#A9A9A9", // Gri tonları
   },
 });
+
+
+
 
 export default EventDetail;

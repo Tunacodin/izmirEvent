@@ -1,28 +1,30 @@
 {
   "expo": {
-    "name": "my-app",
-    "slug": "my-app",
+    "name": "izmirEvent",
+    "slug": "izmirEvent",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/splash.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#121212"
     },
+    
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSCalendarsUsageDescription": "This app needs access to your calendar to add events.",
-          "NSRemindersUsageDescription": "Hatırlatıcılar erişimi uygulamanın etkinlikleri hatırlatabilmesi için gereklidir."
+        "NSCalendarsUsageDescription": "Etkinliği Takvime Eklemek İçin İzin Gerekli",
+        "NSRemindersUsageDescription": "Hatırlatıcılar erişimi uygulamanın etkinlikleri hatırlatabilmesi için gereklidir."
       },
-       "permissions": [
-          "READ_CALENDAR",
+      "permissions": [
+        "READ_CALENDAR",
         "WRITE_CALENDAR",
         "READ_REMINDERS",
         "WRITE_REMINDERS"
-      ]
+      ],
+      "bundleIdentifier": "com.tuna58.izmirEvent"
     },
     "android": {
       "adaptiveIcon": {
@@ -30,14 +32,30 @@
         "backgroundColor": "#ffffff"
       },
       "permissions": [
-          "READ_CALENDAR",
+        "READ_CALENDAR",
         "WRITE_CALENDAR",
         "READ_REMINDERS",
         "WRITE_REMINDERS"
-      ]
+      ],
+      "package": "com.tuna58.izmirEvent"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "17dda2c6-4a92-4495-9c68-e4163149e527"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/17dda2c6-4a92-4495-9c68-e4163149e527"
+    },
+    "plugins": [
+      "expo-font"
+    
+    ]
   }
 }

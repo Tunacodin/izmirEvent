@@ -5,6 +5,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import EventList from "./src/EventList"; // Yolunu düzelttik
 import EventDetail from "./src/EventDetail"; // Yolunu düzelttik
+import Header from "./src/components/Header";
 
 const Stack = createStackNavigator();
 
@@ -14,6 +15,7 @@ function App() {
       <NavigationContainer
       //sayfa isimlerini gizle
       >
+        <Header />
         <Stack.Navigator
           screenOptions={{ headerShown: false }}
           initialRouteName="EventList"

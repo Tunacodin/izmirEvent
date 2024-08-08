@@ -9,6 +9,7 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@expo-google-fonts/inter": "^0.2.3",
     "@expo/vector-icons": "^14.0.2",
     "@fortawesome/fontawesome-svg-core": "^6.6.0",
     "@fortawesome/react-native-fontawesome": "^0.3.2",
@@ -20,8 +21,13 @@
     "@reduxjs/toolkit": "^2.2.7",
     "axios": "^1.7.2",
     "expo": "~51.0.22",
+    "expo-app-loading": "^2.1.1",
+    "expo-av": "~14.0.6",
     "expo-calendar": "~13.0.5",
+    "expo-font": "~12.0.9",
     "expo-status-bar": "~1.12.1",
+    "expo-updates": "~0.25.21",
+    "lottie-react-native": "6.7.0",
     "react": "18.2.0",
     "react-native": "^0.74.3",
     "react-native-calendar-events": "^2.2.0",

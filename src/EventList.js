@@ -305,9 +305,8 @@ const filterEvents = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    padding: 10,
     backgroundColor: "#121212", // Siyah arka plan
-    paddingTop: Platform.OS === "ios" ? 60 : 40,
   },
   scrollContainer: {
     flexGrow: 1,
