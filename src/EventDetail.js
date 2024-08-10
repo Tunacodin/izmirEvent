@@ -124,32 +124,43 @@ const EventDetail = ({ route }) => {
         );
       } else {
         console.error("Invalid URL format", url);
+        Alert.error("Etkinliğimiz Ücretsizdir")
       }
     }
   };
 
-  const handleAddToCalendar = async () => {
-    if (!hasCalendarPermission) {
-      Alert.alert("Calendar permission is required.");
-      return;
-    }
+const handleAddToCalendar = async () => {
+  if (!hasCalendarPermission) {
+    Alert.alert("Calendar permission is required.");
+    return;
+  }
 
-    try {
-      const eventDetails = {
-        title: event.Adi,
-        startDate: new Date(event.EtkinlikBaslamaTarihi),
-        endDate: new Date(event.EtkinlikBitisTarihi),
-        timeZone: "GMT",
-        location: event.EtkinlikMerkezi,
-      };
+  try {
+    const eventDetails = {
+      title: event.Adi,
+      startDate: new Date(event.EtkinlikBaslamaTarihi),
+      endDate: new Date(event.EtkinlikBitisTarihi),
+      timeZone: "GMT",
+      location: event.EtkinlikMerkezi,
+    };
 
-      await Calendar.createEventAsync(defaultCalendarId, eventDetails);
-      Alert.alert("Event added to calendar successfully.");
-    } catch (error) {
-      Alert.alert("An error occurred while adding the event to the calendar.");
-      console.error("Error adding event to calendar:", error);
-    }
-  };
+    await Calendar.createEventAsync(defaultCalendarId, eventDetails);
+    Alert.alert("Etkinlik Takvime Eklendi");
+
+    // Takvim uygulamasını açma
+    const isIOS = Platform.OS === "ios";
+    const calendarAppUrl = isIOS
+      ? "calshow://"
+      : "content://com.android.calendar/time/";
+
+    Linking.openURL(calendarAppUrl).catch((err) =>
+      console.error("Error opening calendar:", err)
+    );
+  } catch (error) {
+    Alert.alert("Etkinlik Takvime Eklenemedi");
+    console.error("Error adding event to calendar:", error);
+  }
+};
 
   const handleShowOnMap = () => {
     const { KoordinatX, KoordinatY } = sessionDetails?.EtkinlikMerkezi || {};
@@ -162,10 +173,8 @@ const EventDetail = ({ route }) => {
         console.error("An error occurred while opening the map", err)
       );
     } else {
-      const coordinatesMessage = `Koordinat X: ${
-        KoordinatX || "Bilinmiyor"
-      }, Koordinat Y: ${KoordinatY || "Bilinmiyor"}`;
-      Alert.alert("Koordinatlar bulunamadı.", coordinatesMessage);
+     
+      Alert.alert("Konum bilgisi mevcut değil.");
     }
   };
 
@@ -189,12 +198,14 @@ const renderMoreInfo = () => {
               style={styles.centerImage}
             />
           )}
-          <ScrollView>
+          <ScrollView showsHorizontalScrollIndicator={false}>
             {sessionDetails && (
               <>
-                <View style={{
-                  padding: 16,
-                }}>
+                <View
+                  style={{
+                    padding: 16,
+                  }}
+                >
                   {eventCenter && (
                     <>
                       <Text style={styles.centerName}>{eventCenter.Adi}</Text>
@@ -211,7 +222,7 @@ const renderMoreInfo = () => {
                       )}
                       {eventCenter.Telefon && (
                         <Text style={styles.phone}>
-                          Phone: {cleanText(eventCenter.Telefon)}
+                          Telefon: {cleanText(eventCenter.Telefon)}
                         </Text>
                       )}
                       {eventCenter.Iletisim && (
@@ -222,24 +233,44 @@ const renderMoreInfo = () => {
                           </Text>
                         </View>
                       )}
-                      <TouchableOpacity
-                        style={styles.webButton}
-                        onPress={handleOpenEventPage}
-                      >
-                        <Text style={styles.webButtonText}>
-                          Web Sayfasına Git
-                        </Text>
-                      </TouchableOpacity>
                     </>
                   )}
                 </View>
               </>
             )}
           </ScrollView>
-          <Button
-            title="Kapat"
-            onPress={() => setModalVisible(!modalVisible)}
-          />
+          <View style={{
+            flexDirection: "column",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: 16,
+            width: "100%",
+          }}>
+            <TouchableOpacity
+              style={styles.webButton}
+              onPress={handleOpenEventPage}
+            >
+              <FontAwesome
+                name="link"
+                size={20}
+                color="white"
+                style={styles.icon}
+              />
+              <Text style={styles.webButtonText}>Web Sayfasına Git</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.webButton}
+              onPress={() => setModalVisible(!modalVisible)}
+            >
+              <FontAwesome
+                name="close"
+                size={20}
+                color="white"
+                style={styles.icon}
+              />
+              <Text style={styles.webButtonText}>Kapat</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </Modal>
@@ -248,7 +279,10 @@ const renderMoreInfo = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContainer}
+      >
         <Image source={{ uri: event.KucukAfis }} style={styles.image} />
         <View style={styles.detailsContainer}>
           <View style={styles.card}>
@@ -329,8 +363,13 @@ const renderMoreInfo = () => {
 
           <TouchableOpacity
             style={[styles.button, event.UcretsizMi && styles.disabledButton]}
-            onPress={!event.UcretsizMi ? handleBuyTicket : null}
-            disabled={event.UcretsizMi}
+            onPress={() => {
+              if (event.UcretsizMi) {
+                Alert.alert("Bilgilendirme", "Etkinliğimiz Ücretsizdir");
+              } else {
+                handleBuyTicket();
+              }
+            }}
           >
             <Icon
               name="local-offer"
@@ -407,9 +446,9 @@ const styles = StyleSheet.create({
   },
   image: {
     width: "100%",
-    height: 200,
+    height: 250,
     borderRadius: 10,
-    resizeMode: "cover",
+    resizeMode: "contain",
   },
   detailsContainer: {
     flex: 1,
@@ -475,9 +514,6 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
   buttonContainer: {
-    backgroundColor: "rgba(0, 0, 0, 1)",
-    borderRadius: 10,
-    width: "100%",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -574,11 +610,18 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   webButton: {
-    backgroundColor: colors.button,
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: "white",
     borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    marginBottom: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+   
+    minHeight: 50,
+    width: "70%",
   },
   webButtonText: {
     color: "#FFFFFF",
@@ -587,6 +630,19 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     backgroundColor: "#A9A9A9", // Gri tonları
+  },
+  closeButton: {
+    backgroundColor: colors.button,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    marginBottom: 10,
+    width: "70%",
+    alignSelf: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    alignItems: "center",
+    height: 40,
   },
 });
 

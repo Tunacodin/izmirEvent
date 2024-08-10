@@ -1,16 +1,12 @@
 import React from "react";
 import { Platform, StyleSheet, Text, View } from "react-native";
 import { useFonts } from "expo-font";
-import AppLoading from "expo-app-loading";
 
 const Header = () => {
   const [fontsLoaded] = useFonts({
     "AbrilFatface-Regular": require("../../assets/fonts/AbrilFatface-Regular.ttf"),
   });
 
-  if (!fontsLoaded) {
-    return <AppLoading />;
-  }
 
   return (
       <Text style={styles.text}>İzmir Eventy</Text>

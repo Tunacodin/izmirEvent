@@ -14,6 +14,7 @@ import {
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchEvents } from "./eventsSlice";
+import { FontAwesome } from "@expo/vector-icons";
 
 const EventList = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -120,6 +121,7 @@ const filterEvents = () => {
   );
 
   setFilteredEvents(filteredData);
+  
 };
 
   const handleLoadMore = () => {
@@ -187,7 +189,7 @@ const filterEvents = () => {
   if (eventStatus === "loading" && !isLoadingMore) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="#0000ff" />
+        <ActivityIndicator size="large" color="#fff" />
       </View>
     );
   } else if (eventStatus === "failed") {
@@ -197,6 +199,7 @@ const filterEvents = () => {
           Bağlantı hatası. Lütfen tekrar deneyin.
         </Text>
         <TouchableOpacity onPress={refreshEvents} style={styles.retryButton}>
+          <Ionicons name="reload" size={24} color="white" />
           <Text style={styles.retryButtonText}>Yeniden Dene</Text>
         </TouchableOpacity>
       </View>
@@ -205,21 +208,26 @@ const filterEvents = () => {
     return (
       <View style={styles.container}>
         <View style={styles.searchContainer}>
+        
           <TextInput
             style={styles.searchInput}
-            placeholder="Etkinlikleri Ara..."
+            placeholder="Etkinlikleri Ara"
             value={searchTerm}
             onChangeText={handleSearch}
           />
           <TouchableOpacity onPress={openModal} style={styles.filterButton}>
-            <Ionicons name="filter" size={24} color="gray" />
+            <FontAwesome
+              name="filter"
+              size={26}
+              color="gray"
+              style={styles.icon}
+            />
           </TouchableOpacity>
         </View>
         <FlatList
           data={filteredEvents}
           renderItem={renderItem}
           keyExtractor={(item) => item.Id.toString()}
-          
           contentContainerStyle={styles.listContent}
           numColumns={2}
           columnWrapperStyle={styles.columnWrapper}
@@ -229,7 +237,7 @@ const filterEvents = () => {
           refreshing={isRefreshing} // Yenileme durumu
           ListFooterComponent={() =>
             isLoadingMore ? (
-              <ActivityIndicator size="large" color="#0000ff" />
+              <ActivityIndicator size="large" color="#fff" />
             ) : null
           }
         />
@@ -252,7 +260,6 @@ const filterEvents = () => {
                         styles.filterOptionButton,
                         selectedTypes.has(type) &&
                           styles.filterOptionButtonSelected,
-                        
                       ]}
                       onPress={() => handleTypeSelect(type)}
                     >
@@ -287,10 +294,17 @@ const filterEvents = () => {
                 </TouchableOpacity>
               </View>
               <TouchableOpacity
+                style={styles.webButton}
                 onPress={closeModal}
-                style={styles.modalCloseButton}
               >
-                <Text style={styles.modalCloseButtonText}>Kapat</Text>
+                <FontAwesome
+                  name="close"
+                  size={20}
+                  color="white"
+
+                  style={styles.icon}
+                />
+                <Text style={styles.webButtonText}>Kapat</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -300,13 +314,19 @@ const filterEvents = () => {
   }
 };
 
-
+const colors = {
+  button: "#C147E9",
+  buttonBorder: "#2D033B",
+  darkBlack: "#121212",
+  white: "#1E1E1E",
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
     backgroundColor: "#121212", // Siyah arka plan
+    justifyContent: "center",
   },
   scrollContainer: {
     flexGrow: 1,
@@ -315,7 +335,7 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
-    borderColor: "#ddd",
+    borderColor: "#fff",
     borderWidth: 1,
     borderRadius: 8,
     marginBottom: 16,
@@ -331,6 +351,9 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     padding: 8,
+    fontSize: 16,
+    color: "#000",
+
   },
   filterButton: {
     padding: 10,
@@ -438,13 +461,21 @@ const styles = StyleSheet.create({
   errorText: {
     color: "red",
     fontSize: 16,
+    textAlign: "center",
     marginBottom: 16,
   },
   retryButton: {
+    width: "50%",
+    alignSelf: "center",
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 6,
     padding: 10,
     borderRadius: 8,
-    backgroundColor: "#2196F3",
+    backgroundColor: "#121212",
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#fff",
   },
   retryButtonText: {
     color: "#fff",
@@ -521,6 +552,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#FFFFFF",
     fontWeight: "bold",
+  },
+  webButton: {
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: "white",
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+
+    minHeight: 50,
+    width: "70%",
+  },
+  webButtonText: {
+    color: "#FFFFFF",
+    fontWeight: "bold",
+    textAlign: "center",
   },
 });
 
