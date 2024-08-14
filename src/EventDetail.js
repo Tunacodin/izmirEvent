@@ -25,6 +25,8 @@ const EventDetail = ({ route }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [sessionDetails, setSessionDetails] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [coordinateX, setCoordinateX] = useState(null);
+  const [coordinateY, setCoordinateY] = useState(null);
   const sessionDetailsURL = `https://openapi.izmir.bel.tr/api/ibb/kultursanat/etkinlikler/${event.Id}`;
 
   useEffect(() => {
@@ -53,6 +55,8 @@ const EventDetail = ({ route }) => {
     try {
       const response = await fetch(sessionDetailsURL);
       const data = await response.json();
+      setCoordinateX(data.EtkinlikMerkezi.KoordinatX);
+      setCoordinateY(data.EtkinlikMerkezi.KoordinatY);
       setSessionDetails(data);
     } catch (error) {
       Alert.alert("Error fetching session details.");
@@ -124,158 +128,167 @@ const EventDetail = ({ route }) => {
         );
       } else {
         console.error("Invalid URL format", url);
-        Alert.error("Etkinliğimiz Ücretsizdir")
+        Alert.error("Etkinliğimiz Ücretsizdir");
       }
     }
   };
 
-const handleAddToCalendar = async () => {
-  if (!hasCalendarPermission) {
-    Alert.alert("Calendar permission is required.");
-    return;
-  }
+  const handleAddToCalendar = async () => {
+    if (!hasCalendarPermission) {
+      Alert.alert("Calendar permission is required.");
+      return;
+    }
 
-  try {
-    const eventDetails = {
-      title: event.Adi,
-      startDate: new Date(event.EtkinlikBaslamaTarihi),
-      endDate: new Date(event.EtkinlikBitisTarihi),
-      timeZone: "GMT",
-      location: event.EtkinlikMerkezi,
-    };
+    try {
+      const eventDetails = {
+        title: event.Adi,
+        startDate: new Date(event.EtkinlikBaslamaTarihi),
+        endDate: new Date(event.EtkinlikBitisTarihi),
+        timeZone: "GMT",
+        location: event.EtkinlikMerkezi,
+      };
 
-    await Calendar.createEventAsync(defaultCalendarId, eventDetails);
-    Alert.alert("Etkinlik Takvime Eklendi");
+      await Calendar.createEventAsync(defaultCalendarId, eventDetails);
+      Alert.alert("Etkinlik Takvime Eklendi");
 
-    // Takvim uygulamasını açma
-    const isIOS = Platform.OS === "ios";
-    const calendarAppUrl = isIOS
-      ? "calshow://"
-      : "content://com.android.calendar/time/";
+      // Takvim uygulamasını açma
+      const isIOS = Platform.OS === "ios";
+      const calendarAppUrl = isIOS
+        ? "calshow://"
+        : "content://com.android.calendar/time/";
 
-    Linking.openURL(calendarAppUrl).catch((err) =>
-      console.error("Error opening calendar:", err)
-    );
-  } catch (error) {
-    Alert.alert("Etkinlik Takvime Eklenemedi");
-    console.error("Error adding event to calendar:", error);
-  }
-};
-
-  const handleShowOnMap = () => {
-    const { KoordinatX, KoordinatY } = sessionDetails?.EtkinlikMerkezi || {};
-    if (KoordinatX !== undefined && KoordinatY !== undefined) {
-      const formattedKoordinatX = KoordinatX.toString().replace(",", ".");
-      const formattedKoordinatY = KoordinatY.toString().replace(",", ".");
-      const url = `https://www.google.com/maps/search/?api=1&query=${formattedKoordinatX},${formattedKoordinatY}`;
-
-      Linking.openURL(url).catch((err) =>
-        console.error("An error occurred while opening the map", err)
+      Linking.openURL(calendarAppUrl).catch((err) =>
+        console.error("Error opening calendar:", err)
       );
-    } else {
-     
-      Alert.alert("Konum bilgisi mevcut değil.");
+    } catch (error) {
+      Alert.alert("Etkinlik Takvime Eklenemedi");
+      console.error("Error adding event to calendar:", error);
     }
   };
 
-const renderMoreInfo = () => {
-  
+  const handleShowOnMap = async () => {
+    setLoading(true);
 
-  const eventCenter = sessionDetails?.EtkinlikMerkezi;
+    try {
+      if (!coordinateX || !coordinateY) {
+        console.log("koordina3", coordinateX, coordinateY);
 
-  return (
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={modalVisible}
-      onRequestClose={() => setModalVisible(!modalVisible)}
-    >
-      <View style={styles.modalContainer}>
-        <View style={styles.modalContent}>
-          {sessionDetails && (
-            <Image
-              source={{ uri: eventCenter.Resim }}
-              style={styles.centerImage}
-            />
-          )}
-          <ScrollView showsHorizontalScrollIndicator={false}>
+        await fetchSessionDetails();
+        console.log("koordinat4", coordinateX, coordinateY);
+      }
+      if (coordinateX != null && coordinateY != null) {
+        const formattedCoordinateX = coordinateX.toString().replace(",", ".");
+        const formattedCoordinateY = coordinateY.toString().replace(",", ".");
+        const url = `https://www.google.com/maps/search/?api=1&query=${formattedCoordinateX},${formattedCoordinateY}`;
+        await Linking.openURL(url);
+      } else {
+      }
+    } catch (error) {
+      console.error("An error occurred:", error);
+      Alert.alert("Bir hata oluştu. Lütfen tekrar deneyin.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const renderMoreInfo = () => {
+    const eventCenter = sessionDetails?.EtkinlikMerkezi;
+
+    return (
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(!modalVisible)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
             {sessionDetails && (
-              <>
-                <View
-                  style={{
-                    padding: 16,
-                  }}
-                >
-                  {eventCenter && (
-                    <>
-                      <Text style={styles.centerName}>{eventCenter.Adi}</Text>
-                      <Text style={styles.centerDescription}>
-                        {cleanText(eventCenter.Aciklama)}
-                      </Text>
-                      {eventCenter.Adres && (
-                        <View style={styles.addressContainer}>
-                          <Text style={styles.addressLabel}>Adres:</Text>
-                          <Text style={styles.address}>
-                            {cleanText(eventCenter.Adres)}
-                          </Text>
-                        </View>
-                      )}
-                      {eventCenter.Telefon && (
-                        <Text style={styles.phone}>
-                          Telefon: {cleanText(eventCenter.Telefon)}
-                        </Text>
-                      )}
-                      {eventCenter.Iletisim && (
-                        <View>
-                          <Text style={styles.contactLabel}>İletişim:</Text>
-                          <Text style={styles.contact}>
-                            {cleanText(eventCenter.Iletisim)}
-                          </Text>
-                        </View>
-                      )}
-                    </>
-                  )}
-                </View>
-              </>
+              <Image
+                source={{ uri: eventCenter.Resim }}
+                style={styles.centerImage}
+              />
             )}
-          </ScrollView>
-          <View style={{
-            flexDirection: "column",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: 16,
-            width: "100%",
-          }}>
-            <TouchableOpacity
-              style={styles.webButton}
-              onPress={handleOpenEventPage}
+            <ScrollView showsHorizontalScrollIndicator={false}>
+              {sessionDetails && (
+                <>
+                  <View
+                    style={{
+                      padding: 16,
+                    }}
+                  >
+                    {eventCenter && (
+                      <>
+                        <Text style={styles.centerName}>{eventCenter.Adi}</Text>
+                        <Text style={styles.centerDescription}>
+                          {cleanText(eventCenter.Aciklama)}
+                        </Text>
+                        {eventCenter.Adres && (
+                          <View style={styles.addressContainer}>
+                            <Text style={styles.addressLabel}>Adres:</Text>
+                            <Text style={styles.address}>
+                              {cleanText(eventCenter.Adres)}
+                            </Text>
+                          </View>
+                        )}
+                        {eventCenter.Telefon && (
+                          <Text style={styles.phone}>
+                            Telefon: {cleanText(eventCenter.Telefon)}
+                          </Text>
+                        )}
+                        {eventCenter.Iletisim && (
+                          <View>
+                            <Text style={styles.contactLabel}>İletişim:</Text>
+                            <Text style={styles.contact}>
+                              {cleanText(eventCenter.Iletisim)}
+                            </Text>
+                          </View>
+                        )}
+                      </>
+                    )}
+                  </View>
+                </>
+              )}
+            </ScrollView>
+            <View
+              style={{
+                flexDirection: "column",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: 16,
+                width: "100%",
+              }}
             >
-              <FontAwesome
-                name="link"
-                size={20}
-                color="white"
-                style={styles.icon}
-              />
-              <Text style={styles.webButtonText}>Web Sayfasına Git</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.webButton}
-              onPress={() => setModalVisible(!modalVisible)}
-            >
-              <FontAwesome
-                name="close"
-                size={20}
-                color="white"
-                style={styles.icon}
-              />
-              <Text style={styles.webButtonText}>Kapat</Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.webButton}
+                onPress={handleOpenEventPage}
+              >
+                <FontAwesome
+                  name="link"
+                  size={20}
+                  color="white"
+                  style={styles.icon}
+                />
+                <Text style={styles.webButtonText}>Web Sayfasına Git</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.webButton}
+                onPress={() => setModalVisible(!modalVisible)}
+              >
+                <FontAwesome
+                  name="close"
+                  size={20}
+                  color="white"
+                  style={styles.icon}
+                />
+                <Text style={styles.webButtonText}>Kapat</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
-    </Modal>
-  );
-};
+      </Modal>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -433,7 +446,6 @@ const colors = {
   buttonBorder: "#2D033B",
   darkBlack: "#121212",
   white: "#1E1E1E",
- 
 };
 
 const styles = StyleSheet.create({
@@ -619,7 +631,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "row",
-   
+
     minHeight: 50,
     width: "70%",
   },
@@ -645,8 +657,5 @@ const styles = StyleSheet.create({
     height: 40,
   },
 });
-
-
-
 
 export default EventDetail;

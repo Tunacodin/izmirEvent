@@ -353,7 +353,6 @@ const styles = StyleSheet.create({
     padding: 8,
     fontSize: 16,
     color: "#000",
-
   },
   filterButton: {
     padding: 10,
@@ -361,17 +360,24 @@ const styles = StyleSheet.create({
   listContent: {
     flexGrow: 1,
     paddingBottom: 20,
+    
   },
   columnWrapper: {
     justifyContent: "space-between",
+    elevation: 6,
+    shadowColor: "#fff",
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   itemContainer: {
     flex: 1,
     margin: 10,
-    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#aaa",
     borderRadius: 5,
     overflow: "hidden",
-    elevation: 3,
+    backgroundColor: "#1e1e1e",
   },
   labelContainer: {
     flexDirection: "row",
@@ -405,6 +411,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     textAlign: "center",
+    color: "#fff",
   },
   itemDescription: {
     color: "gray",

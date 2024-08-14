@@ -1,29 +1,22 @@
 {
   "expo": {
-    "name": "izmirEvent",
-    "slug": "izmirEvent",
+    "name": "izmirEventy",
+    "slug": "izmirEventy",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/splash.png",
+    "icon": "./assets/izmireventyLogo.png",  
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#121212"
     },
-    
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
         "NSCalendarsUsageDescription": "Etkinliği Takvime Eklemek İçin İzin Gerekli",
         "NSRemindersUsageDescription": "Hatırlatıcılar erişimi uygulamanın etkinlikleri hatırlatabilmesi için gereklidir."
       },
-      "permissions": [
-        "READ_CALENDAR",
-        "WRITE_CALENDAR",
-        "READ_REMINDERS",
-        "WRITE_REMINDERS"
-      ],
       "bundleIdentifier": "com.tuna58.izmirEvent"
     },
     "android": {
@@ -34,8 +27,8 @@
       "permissions": [
         "READ_CALENDAR",
         "WRITE_CALENDAR",
-        "READ_REMINDERS",
-        "WRITE_REMINDERS"
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
       ],
       "package": "com.tuna58.izmirEvent"
     },
@@ -55,7 +48,6 @@
     },
     "plugins": [
       "expo-font"
-    
     ]
   }
 }
